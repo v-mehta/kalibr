@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<launch>
+  <arg name="camera" default="stereo" />
+  <param name="use_sim_time" value="true" />
+  <arg name="bag_path" default="" />
+
+
+  <!-- Config for Point Grey Cameras -->
+  <node name="decompress_left_images" pkg="image_transport" type="republish" args="compressed in:=$(arg camera)/left/image_raw raw out:=$(arg camera)/left/image_raw"/>
+  <node name="decompress_right_images" pkg="image_transport" type="republish" args="compressed in:=$(arg camera)/right/image_raw raw out:=$(arg camera)/right/image_raw"/>
+
+<!--   <node pkg="rviz" type="rviz" name="stereo_rviz"
+        args="-d $(find kalibr)/launch/stereo_calibration.rviz"/> -->
+
+  <node pkg="kalibr" type="kalibr_calibrate_cameras" name="calibrate_using_kalibr"
+    args="--bag $(arg bag_path)
+          --target $(find kalibr)/launch/target.yaml
+          --topics /stereo/left/image_raw /stereo/right/image_raw
+          --models pinhole pinhole" />
+
+</launch>

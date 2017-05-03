@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+
+<launch>
+
+<param name="use_sim_time" value="true" />
+<arg name="camera" default="stereo" />
+<arg name="namespace" default="$(arg camera)" />
+<arg name="left_camera_name" default="left" />
+<arg name="right_camera_name" default="right" />
+<arg name="scale" default="1.0" />
+<arg name="process_every_nth_frame" default="1" />
+<arg name="stereo_params_camchain" default="$(find kalibr)/launch/kalibr_updated_params.yaml"/>
+
+<arg name="bag_path" default="" />
+<node name="play_bag" pkg="rosbag" type="play" args="--clock $(arg bag_path) -r 0.5" />
+
+<!-- Config for Point Grey Cameras -->
+<node name="decompress_left_images" pkg="image_transport" type="republish" args="compressed in:=$(arg camera)/left/image_raw raw out:=$(arg camera)/left/image_raw"/>
+<node name="decompress_right_images" pkg="image_transport" type="republish" args="compressed in:=$(arg camera)/right/image_raw raw out:=$(arg camera)/right/image_raw"/>
+
+<group ns="$(arg camera)" >
+  <group ns="left">
+    <node pkg="nodelet" type="nodelet" name="debayer"
+        args="standalone image_proc/debayer" />
+  </group>
+
+  <group ns="right">
+    <node pkg="nodelet" type="nodelet" name="debayer"
+        args="standalone image_proc/debayer" />
+  </group>
+</group>
+
+<node pkg="rviz" type="rviz" name="stereo_rviz"
+        args="-d $(find kalibr)/launch/stereo_calibration.rviz"/>
+
+
+<group ns="$(arg namespace)">
+
+<!--   <node name="stereo_undistort" pkg="image_undistort" type="stereo_undistort_node">
+    <param name="input_camera_info_from_ros_params" value = "true"/>
+    <param name="left_camera_namespace" value="$(arg left_camera_name)"/>
+    <param name="right_camera_namespace" value="$(arg right_camera_name)"/>
+    <param name="process_every_nth_frame" value="$(arg process_every_nth_frame)"/>
+    <param name="rename_radtan_plumb_bob" value="true"/>
+    <rosparam file="$(arg stereo_params_camchain)"/>
+
+    <remap from="raw/left/image" to="$(arg left_camera_name)/image_mono"/>
+    <remap from="raw/right/image" to="$(arg right_camera_name)/image_mono"/>
+
+    <remap from="rect/left/image" to="$(arg left_camera_name)/image_rect"/>
+    <remap from="rect/right/image" to="$(arg right_camera_name)/image_rect"/>
+
+    <remap from="rect/left/camera_info" to="$(arg left_camera_name)/camera_info"/>
+    <remap from="rect/right/camera_info" to="$(arg right_camera_name)/camera_info"/>
+  </node> -->
+
+  <node name="stereo_undistort" pkg="image_undistort" type="dense_stereo_node">
+    <param name="publish_tf" value="true" />
+    <param name="input_camera_info_from_ros_params" value="true"/>
+    <param name="left_camera_namespace" value="$(arg left_camera_name)"/>
+    <param name="right_camera_namespace" value="$(arg right_camera_name)"/>
+    <param name="process_every_nth_frame" value="$(arg process_every_nth_frame)"/>
+    <param name="rename_radtan_plumb_bob" value="true"/>
+    <rosparam file="$(arg stereo_params_camchain)"/>
+
+    <remap from="raw/left/image" to="$(arg left_camera_name)/image_mono"/>
+    <remap from="raw/right/image" to="$(arg right_camera_name)/image_mono"/>
+
+    <remap from="rect/left/image" to="$(arg left_camera_name)/image_rect"/>
+    <remap from="rect/right/image" to="$(arg right_camera_name)/image_rect"/>
+
+    <remap from="rect/left/camera_info" to="$(arg left_camera_name)/camera_info"/>
+    <remap from="rect/right/camera_info" to="$(arg right_camera_name)/camera_info"/>
+  </node>
+</group>
+
+</launch>
