@@ -70,7 +70,8 @@ def loadImageToRosMsg(filename):
     image_np = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
 
     timestamp_nsecs = os.path.splitext(os.path.basename(filename))[0]
-    timestamp = rospy.Time( secs=int(timestamp_nsecs[0:-9]), nsecs=int(timestamp_nsecs[-9:]) )
+    timestamp = rospy.Time( float(timestamp_nsecs))
+    # timestamp = rospy.Time( secs=int(timestamp_nsecs[0:-9]), nsecs=int(timestamp_nsecs[-9:]) )
 
     rosimage = Image()
     rosimage.header.stamp = timestamp
